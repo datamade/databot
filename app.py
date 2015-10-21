@@ -7,12 +7,34 @@ from requests_oauthlib import OAuth1
 
 SLACK_AUTH_TOKEN = os.environ['SLACK_AUTH_TOKEN']
 SLACK_REALTIME_ENDPOINT = 'https://slack.com/api/rtm.start'
+
 YELP_CONSUMER_KEY = os.environ['YELP_CONSUMER_KEY']
 YELP_CONSUMER_SECRET = os.environ['YELP_CONSUMER_SECRET']
 YELP_TOKEN = os.environ['YELP_TOKEN']
 YELP_TOKEN_SECRET = os.environ['YELP_TOKEN_SECRET']
 
+FORECAST_KEY = os.environ['FORECAST_KEY']
+
 YELP_URL = 'http://api.yelp.com/v2/search'
+FORECAST_PATTERN = 'https://api.forecast.io/forecast/{0}/{1}'
+
+def getForecast(lat_lon=[]):
+    
+    if lat_lon:
+        lat_lon = ','.join(lat_lon)
+    else:
+        lat_lon = '41.888666,-87.634702'
+    
+    req_url = FORECAST_PATTERN.format(FORECAST_KEY,lat_lon)
+    forecast = requests.get(req_url)
+
+    icon_text = forecast.json()['currently']['icon']
+    summary = forecast.json()['currently']['summary']
+
+    with open('icons/{0}.txt'.format(icon_text), 'r') as f:
+        icon = f.read()
+    
+    return icon, summary
 
 def getLunch(lat_lon=[], 
              search_term='lunch', 
@@ -72,6 +94,7 @@ if __name__ == "__main__":
             channel_name = channel_lookup.get(result['channel'], 'general')
             user_name = user_lookup.get(result['user'], '')
             lower_text = result['text'].lower()
+            print(lower_text)
             if 'databot' in lower_text and 'lunch' in lower_text:
                 words = lower_text.split(' ')
                 try:
@@ -99,4 +122,14 @@ if __name__ == "__main__":
                 }
                 ws.send(json.dumps(postback))
                 message_id += 1
-
+            
+            if 'databot' in lower_text and 'weather' in lower_text:
+                icon, summary = getForecast()
+                postback = {
+                    'id': message_id,
+                    'type': 'message',
+                    'channel': result['channel'],
+                    'text': '{0}```{1}```'.format(icon, summary)
+                }
+                ws.send(json.dumps(postback))
+                message_id += 1
