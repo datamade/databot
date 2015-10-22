@@ -89,12 +89,12 @@ if __name__ == "__main__":
 
     while True:
         result = json.loads(ws.recv())
+        print(result)
         message_id = 1
         if result.get('type') == 'message' and not result.get('subtype'):
             channel_name = channel_lookup.get(result['channel'], 'general')
             user_name = user_lookup.get(result['user'], '')
             lower_text = result['text'].lower()
-            print(lower_text)
             if 'databot' in lower_text and 'lunch' in lower_text:
                 words = lower_text.split(' ')
                 try:
