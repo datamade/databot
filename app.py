@@ -30,11 +30,12 @@ def getForecast(lat_lon=[]):
 
     icon_text = forecast.json()['currently']['icon']
     summary = forecast.json()['currently']['summary']
+    temperature = forecast.json()['currently']['temperature']
 
     with open('icons/{0}.txt'.format(icon_text), 'r') as f:
         icon = f.read()
     
-    return icon, summary
+    return icon, summary, temperature
 
 def getLunch(lat_lon=[], 
              search_term='lunch', 
@@ -124,12 +125,12 @@ if __name__ == "__main__":
                 message_id += 1
             
             if 'databot' in lower_text and 'weather' in lower_text:
-                icon, summary = getForecast()
+                icon, summary, temperature = getForecast()
                 postback = {
                     'id': message_id,
                     'type': 'message',
                     'channel': result['channel'],
-                    'text': '{0}```{1}```'.format(icon, summary)
+                    'text': '```{0}```\n{1} {2}\u00B0'.format(icon, summary, temperature)
                 }
                 ws.send(json.dumps(postback))
                 message_id += 1
